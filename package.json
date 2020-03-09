@@ -1,0 +1,22 @@
+{
+  "name": "test-github-pr-restrict-folder",
+  "version": "1.0.0",
+  "description": "Repo to test restriction in folders",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "merge:branch1": "git checkout branch1 folder1/",
+    "deploy:branch2": "",
+    "deploy:branch3": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chicus12/test-github-pr-restrict-folder.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chicus12/test-github-pr-restrict-folder/issues"
+  },
+  "homepage": "https://github.com/chicus12/test-github-pr-restrict-folder#readme"
+}
