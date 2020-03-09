@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "merge:branch1": "git checkout branch1 folder1/file1.txt",
-    "deploy:branch2": "",
-    "deploy:branch3": ""
+    "merge:branch1": "git checkout develop folder1/ .gitignore package.json README.md",
+    "merge:branch2": "git checkout develop folder2/ .gitignore package.json README.md",
+    "merge:branch3": "git checkout develop folder3/ .gitignore package.json README.md"
   },
   "repository": {
     "type": "git",
