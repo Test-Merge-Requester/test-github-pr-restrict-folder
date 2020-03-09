@@ -1,2 +1,2 @@
 hola file 1
-new line in file2
+new line in file1
