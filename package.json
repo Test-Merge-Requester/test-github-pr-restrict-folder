@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "merge:branch1": "git checkout branch1 folder1/",
+    "merge:branch1": "git checkout branch1 folder1/file1.txt",
     "deploy:branch2": "",
     "deploy:branch3": ""
   },
