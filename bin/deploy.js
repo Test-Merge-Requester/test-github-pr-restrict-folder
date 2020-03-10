@@ -1,4 +1,5 @@
 #!/usr/bin/env node
 
-require = require('esm')(module /*, options*/);
-require('./deploy-cli').cli(process.argv);
+/* eslint-disable no-global-assign */
+require = require('esm')(module)
+require('./deploy-cli').cli(process.argv)
