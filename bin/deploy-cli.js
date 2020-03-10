@@ -6,6 +6,10 @@ import figlet from 'figlet'
 import binExists from 'command-exists'
 import inquirer from 'inquirer'
 import git from 'simple-git/promise'
+import util from 'util'
+import { exec as execSync } from 'child_process'
+
+const exec = util.promisify(execSync)
 
 const IS_WINDOWS = os.platform().indexOf('win32') > -1
 const LOG = console.log
@@ -49,6 +53,11 @@ export async function cli() {
       LOG('Se encontró el branch')
     }
 
+    const { stdout: diff, stderr } = await exec(
+      'git diff branch1..develop --stat folder1/ .eslintrc.js .gitignore .prettierrc package.json README.md yarn.lock'
+    )
+
+    console.log(diff)
     console.log('branchs', branchs)
     console.log('answer', branchDestinyFound)
   } catch (error) {
