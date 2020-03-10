@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Repo to test restriction in folders",
   "main": "index.js",
+  "bin": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "merge:branch1": "git checkout develop folder1/ .gitignore package.json README.md",
@@ -18,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/chicus12/test-github-pr-restrict-folder/issues"
   },
-  "homepage": "https://github.com/chicus12/test-github-pr-restrict-folder#readme"
+  "homepage": "https://github.com/chicus12/test-github-pr-restrict-folder#readme",
+  "dependencies": {
+    "esm": "^3.2.25"
+  }
 }
