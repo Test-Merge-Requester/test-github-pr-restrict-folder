@@ -53,10 +53,25 @@ export async function cli() {
       LOG('Se encontró el branch')
     }
 
-    const { stdout: diff, stderr } = await exec(
-      'git diff branch1..develop --stat folder1/ .eslintrc.js .gitignore .prettierrc package.json README.md yarn.lock'
+    const { stdout: remotes } = await exec('git remote')
+
+    console.log('remotes', remotes.indexOf('upstream'))
+    const { stdout: diff, stderr: diffError } = await exec(
+      'git diff branch1..develop --color --stat folder1/ .eslintrc.js .gitignore .prettierrc package.json README.md yarn.lock'
     )
 
+    try {
+      await git().checkout('branch1')
+    } catch (error) {
+      throw new StandardError(
+        chalk.red(
+          `☠️ Error al hacer checkout al branch x ☠️ \n ${error.message} `
+        ),
+        {
+          code: 'NOT_BIN_NECESSARY',
+        }
+      )
+    }
     console.log(diff)
     console.log('branchs', branchs)
     console.log('answer', branchDestinyFound)
