@@ -148,7 +148,8 @@ export async function cli() {
     // configurados en el archivo `github-auth-config.js`, sino
     // los pido en el CLI
     try {
-      const githubCredentials = require('./github-auth-configw')
+      const githubCredentials = require('./github-auth-config')
+      console.log('si estan')
     } catch (e) {
       if (e instanceof Error && e.code === 'MODULE_NOT_FOUND') {
         console.log("Can't load foo!")
