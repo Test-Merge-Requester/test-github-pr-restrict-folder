@@ -132,13 +132,16 @@ export async function cli() {
     // cambiarse al branch de destino para obtener
     // cambios
     try {
-      await git().checkout(targetBranch)
+      await git()
+        .silent(true)
+        .checkout(targetBranch)
     } catch (error) {
       const { message, ...rest } = errors.CHECKOUT_TO_TARGET_BRANCH
-      throw new StandardError(
-        message({ error: error.message, targetBranch }),
-        rest
-      )
+
+      throw new StandardError(message({ error: error.message, targetBranch }), {
+        ...rest,
+        stack: error.stack,
+      })
     }
 
     // Me traigo los ultimos cambios del origin
@@ -159,7 +162,10 @@ export async function cli() {
     // Me traigo los ultimos cambios del upstream
     // del branch de destino
     try {
-      const { summary } = await git().pull('upstream', targetBranch)
+      const { summary } = await git().pull(
+        'https://chicus12:CoCobolo72040489@github.com/Test-Merge-Requester/test-github-pr-restrict-folder.git',
+        targetBranch
+      )
       changesInUpstream = summary
     } catch (error) {
       const { message, ...rest } = errors.PULL_FROM_UPSTREAM_TARGET_BRANCH
