@@ -152,7 +152,7 @@ export async function cli() {
     // configurados en el archivo `github-auth-config.js`, si no
     // los pido en el CLI
     try {
-      const githubCredentials = require('./github-auth-config')
+      const githubCredentials = require('./github-auth-configsss')
       if (typeof githubCredentials !== 'object') {
         const { message, ...rest } = errors.GITHUB_AUTH_CONFIG_BAD_FORMAT
         throw new StandardError(message, rest)
