@@ -207,14 +207,14 @@ export async function cli() {
     const changesInOrigin = { changes: 0 }
     const changesInUpstream = { changes: 0 }
     try {
-      const response = await git()
-        .fetch(
-          `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
-          targetBranch
-        )
-        .merge(`origin/${targetBranch}`)
+      const response = await git().fetch(
+        `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
+        targetBranch
+      )
+      const response2 = await git().merge(`origin/${targetBranch}`)
       // changesInOrigin = summary
       console.log('response origin', response)
+      console.log('response origin2', response2)
     } catch (error) {
       const { message, ...rest } = errors.PULL_FROM_ORIGIN_TARGET_BRANCH
       throw new StandardError(
@@ -226,13 +226,13 @@ export async function cli() {
     // Me traigo los ultimos cambios del upstream
     // del branch de destino
     try {
-      const response = await git()
-        .fetch(
-          `https://${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO}`,
-          targetBranch
-        )
-        .merge(`upstream/${targetBranch}`)
+      const response = await git().fetch(
+        `https://${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO}`,
+        targetBranch
+      )
+      const response2 = await git().merge(`upstream/${targetBranch}`)
       console.log('response upstream', response)
+      console.log('response upstream2', response2)
 
       // changesInUpstream = summary
     } catch (error) {
