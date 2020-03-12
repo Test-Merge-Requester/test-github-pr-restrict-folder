@@ -103,4 +103,4 @@ dist
 # TernJS port file
 .tern-port
 
-bin/utils/github-auth-config.js
+bin/merge-requester/github-auth-config.js

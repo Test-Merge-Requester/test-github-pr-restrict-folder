@@ -144,6 +144,20 @@ export async function cli() {
       })
     }
 
+    // Verificar si existe el usuario y contraseña
+    // configurados en el archivo `github-auth-config.js`, sino
+    // los pido en el CLI
+    try {
+      const githubCredentials = require('./github-auth-configw')
+    } catch (e) {
+      if (e instanceof Error && e.code === 'MODULE_NOT_FOUND') {
+        console.log("Can't load foo!")
+        process.exit(0)
+      } else {
+        throw e
+      }
+    }
+
     // Me traigo los ultimos cambios del origin
     // del branch de destino
     let changesInOrigin = { changes: 0 }

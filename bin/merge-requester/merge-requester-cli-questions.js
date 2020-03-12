@@ -32,4 +32,16 @@ export default {
       },
     ]
   },
+  githubCredentials: [
+    {
+      type: 'input',
+      name: 'githubUsername',
+      message: 'Digite su usuario de github',
+    },
+    {
+      type: 'password',
+      name: 'githubPassword',
+      message: 'Digite su contraseña de github',
+    },
+  ],
 }
