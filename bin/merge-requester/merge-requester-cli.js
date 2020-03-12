@@ -211,7 +211,7 @@ export async function cli() {
         `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
         targetBranch
       )
-      const response2 = await git().merge(`origin/${targetBranch}`)
+      const response2 = await git().merge([`origin/${targetBranch}`])
       // changesInOrigin = summary
       console.log('response origin', response)
       console.log('response origin2', response2)
@@ -230,7 +230,7 @@ export async function cli() {
         `https://${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO}`,
         targetBranch
       )
-      const response2 = await git().merge(`upstream/${targetBranch}`)
+      const response2 = await git().merge([`upstream/${targetBranch}`])
       console.log('response upstream', response)
       console.log('response upstream2', response2)
 
