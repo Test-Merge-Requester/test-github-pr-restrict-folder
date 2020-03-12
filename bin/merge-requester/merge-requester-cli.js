@@ -12,7 +12,7 @@ import { exec as execSync } from 'child_process'
 
 import errors from './merge-requester-errors'
 import questions from './merge-requester-cli-questions'
-import { config } from './merge-requester-config'
+import { config, REPO, GITHUB_ORGANIZATION } from './merge-requester-config'
 
 const exec = util.promisify(execSync)
 
@@ -152,7 +152,7 @@ export async function cli() {
     // configurados en el archivo `github-auth-config.js`, si no
     // los pido en el CLI
     try {
-      const githubCredentials = require('./github-auth-configsss')
+      const githubCredentials = require('./github-auth-config')
       if (typeof githubCredentials !== 'object') {
         const { message, ...rest } = errors.GITHUB_AUTH_CONFIG_BAD_FORMAT
         throw new StandardError(message, rest)
@@ -183,7 +183,7 @@ export async function cli() {
         // no se encontró el archivo con los credenciales de Github
         LOG(
           chalk.cyan(
-            'Ha futuro puede crear el archivo github-auth-config.js en `bin/merge-requester/` y exportar un objeto con `username` y `password`'
+            'Ha futuro puede crear el archivo github-auth-config.js (está incluído en el .gitignore) en la ruta `bin/merge-requester/` y exportar un objeto con `username` y `password`, seran tomados de ahí sus credenciales para que no tenga que digitarlos'
           )
         )
       } else {
@@ -192,19 +192,29 @@ export async function cli() {
     }
 
     if (!githubUsername || !githubPassword) {
+      // si no se definió archivo de credenciales
+      // pregunto por CLI usuario y password de github
       const githubCredentials = await inquirer.prompt(
         questions.githubCredentials
       )
-      console.log('githubCredentiasl', githubCredentials)
+
+      githubUsername = githubCredentials.githubUsername
+      githubPassword = githubCredentials.githubPassword
     }
 
     // Me traigo los ultimos cambios del origin
     // del branch de destino
-    let changesInOrigin = { changes: 0 }
-    let changesInUpstream = { changes: 0 }
+    const changesInOrigin = { changes: 0 }
+    const changesInUpstream = { changes: 0 }
     try {
-      const { summary } = await git().pull('origin', targetBranch)
-      changesInOrigin = summary
+      const response = await git()
+        .fetch(
+          `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
+          targetBranch
+        )
+        .merge(`origin/${targetBranch}`)
+      // changesInOrigin = summary
+      console.log('response origin', response)
     } catch (error) {
       const { message, ...rest } = errors.PULL_FROM_ORIGIN_TARGET_BRANCH
       throw new StandardError(
@@ -216,11 +226,15 @@ export async function cli() {
     // Me traigo los ultimos cambios del upstream
     // del branch de destino
     try {
-      const { summary } = await git().pull(
-        'https://chicus12:CoCobolo72040489@github.com/Test-Merge-Requester/test-github-pr-restrict-folder.git',
-        targetBranch
-      )
-      changesInUpstream = summary
+      const response = await git()
+        .fetch(
+          `https://${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO}`,
+          targetBranch
+        )
+        .merge(`upstream/${targetBranch}`)
+      console.log('response upstream', response)
+
+      // changesInUpstream = summary
     } catch (error) {
       const { message, ...rest } = errors.PULL_FROM_UPSTREAM_TARGET_BRANCH
       throw new StandardError(
@@ -231,31 +245,47 @@ export async function cli() {
 
     if (changesInOrigin.changes > 0 || changesInUpstream.changes > 0) {
       try {
-        // git add .
-        // git commit
+        await git()
+          .add('.')
+          .commit('Merge changes from upstream and origin before Pull Request')
       } catch (error) {
-        console.error(error)
+        const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
+        throw new StandardError(message, rest)
       }
     }
 
     // guardo el último commit SHA antes de hacer merge
     // para luego hacer la comparación entre fuentes
-    const { branches: newBranches } = await git().branch()
-    console.log(newBranches)
-    const lastCommitSHA = newBranches[`remotes/origin/${targetBranch}`].commit
+    const { branches: newBranchesReference } = await git().branch()
+
+    const lastCommitSHA =
+      newBranchesReference[`remotes/origin/${targetBranch}`].commit
+
+    console.log('lastCommitSHA', lastCommitSHA)
 
     // hacer el merge de los cambios nuevos del origen
-    // try {
-    //   const { stdout: merge } = await exec(
-    //     `git checkout ${sourceBranch} ${filesAndDirectoriesToMerge}`
-    //   )
-    // } catch (error) {
-    //   const { message, ...rest } = errors.MERGE_FROM_SOURCE
-    //   throw new StandardError(
-    //     message({ error: error.message, sourceBranch }),
-    //     rest
-    //   )
-    // }
+    try {
+      const { stdout: merge } = await exec(
+        `git checkout ${sourceBranch} ${filesAndDirectoriesToMerge}`
+      )
+
+      console.log('merge', merge)
+    } catch (error) {
+      const { message, ...rest } = errors.MERGE_FROM_SOURCE
+      throw new StandardError(
+        message({ error: error.message, sourceBranch }),
+        rest
+      )
+    }
+
+    try {
+      await git()
+        .add('.')
+        .commit('Merge changes from upstream and origin before Pull Request')
+    } catch (error) {
+      const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
+      throw new StandardError(message, rest)
+    }
   } catch (error) {
     if (error && error.code) {
       LOG(error.message)

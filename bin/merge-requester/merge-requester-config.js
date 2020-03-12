@@ -32,3 +32,7 @@ export const config = {
 }
 
 export const branches = Object.keys(config).map(branch => branch)
+
+export const REPO = 'test-github-pr-restrict-folder.git'
+
+export const GITHUB_ORGANIZATION = 'Test-Merge-Requester'

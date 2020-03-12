@@ -98,4 +98,12 @@ export default {
     ),
     code: 'GITHUB_AUTH_CONFIG_NOT_PASSWORD',
   },
+  MERGE_CHANGES_FROM_ORIGIN_UPSTREAM: {
+    message(error) {
+      return chalk.red(
+        `☠️ Ha ocurrido un error al tratar de hacer commit de los cambios obtenidos de origin/upstream antes del Pull Request. ☠️\n${error}`
+      )
+    },
+    code: 'MERGE_CHANGES_FROM_ORIGIN_UPSTREAM',
+  },
 }

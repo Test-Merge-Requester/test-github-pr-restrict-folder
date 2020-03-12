@@ -1,5 +1,9 @@
 import { branches } from './merge-requester-config'
 
+function isEmail(username) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)
+}
+
 export default {
   targetBranch: [
     {
@@ -37,11 +41,29 @@ export default {
       type: 'input',
       name: 'githubUsername',
       message: 'Digite su usuario de github',
+      validate(username) {
+        if (!username || !username.length) {
+          return 'El username es requerido'
+        }
+
+        if (isEmail(username)) {
+          return 'Se requiere el username no el correo asociado a la cuenta de github'
+        }
+        return true
+      },
     },
     {
       type: 'password',
       name: 'githubPassword',
       message: 'Digite su contraseña de github',
+      mask: '*',
+      validate(password) {
+        if (!password || !password.length) {
+          return 'El password es requerido'
+        }
+
+        return true
+      },
     },
   ],
 }
