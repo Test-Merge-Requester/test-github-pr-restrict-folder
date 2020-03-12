@@ -2,4 +2,4 @@
 
 /* eslint-disable no-global-assign */
 require = require('esm')(module)
-require('./merge-requester-cli').cli(process.argv)
+require('./merge-requester-cli')(process.argv)

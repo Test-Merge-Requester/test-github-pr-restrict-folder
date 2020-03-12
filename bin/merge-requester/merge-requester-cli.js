@@ -1,4 +1,5 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable global-require */
+
 import chalk from 'chalk'
 import os from 'os'
 import StandardError from 'standard-error'
@@ -18,7 +19,7 @@ const exec = util.promisify(execSync)
 const IS_WINDOWS = os.platform().indexOf('win32') > -1
 const LOG = console.log
 
-export async function cli() {
+export default async function cli() {
   let currentBranch = null
   try {
     LOG(chalk.yellow(figlet.textSync('Merge Requester')))
@@ -144,19 +145,56 @@ export async function cli() {
       })
     }
 
+    let githubUsername = null
+    let githubPassword = null
     // Verificar si existe el usuario y contraseña
-    // configurados en el archivo `github-auth-config.js`, sino
+    // configurados en el archivo `github-auth-config.js`, si no
     // los pido en el CLI
     try {
       const githubCredentials = require('./github-auth-config')
-      console.log('si estan')
+      if (typeof githubCredentials !== 'object') {
+        const { message, ...rest } = errors.GITHUB_AUTH_CONFIG_BAD_FORMAT
+        throw new StandardError(message, rest)
+      }
+
+      if (
+        !githubCredentials.username ||
+        typeof githubCredentials.username !== 'string' ||
+        !githubCredentials.username.length
+      ) {
+        const { message, ...rest } = errors.GITHUB_AUTH_CONFIG_NOT_USERNAME
+        throw new StandardError(message, rest)
+      }
+
+      if (
+        !githubCredentials.password ||
+        typeof githubCredentials.password !== 'string' ||
+        !githubCredentials.password.length
+      ) {
+        const { message, ...rest } = errors.GITHUB_AUTH_CONFIG_NOT_PASSWORD
+        throw new StandardError(message, rest)
+      }
+
+      githubUsername = githubCredentials.username
+      githubPassword = githubCredentials.password
     } catch (e) {
       if (e instanceof Error && e.code === 'MODULE_NOT_FOUND') {
-        console.log("Can't load foo!")
-        process.exit(0)
+        // no se encontró el archivo con los credenciales de Github
+        LOG(
+          chalk.cyan(
+            'Ha futuro puede crear el archivo github-auth-config.js en `bin/merge-requester/` y exportar un objeto con `username` y `password`'
+          )
+        )
       } else {
         throw e
       }
+    }
+
+    if (!githubUsername || !githubPassword) {
+      const githubCredentials = await inquirer.prompt(
+        questions.githubCredentials
+      )
+      console.log('githubCredentiasl', githubCredentials)
     }
 
     // Me traigo los ultimos cambios del origin
@@ -194,7 +232,9 @@ export async function cli() {
       try {
         // git add .
         // git commit
-      } catch (error) {}
+      } catch (error) {
+        console.error(error)
+      }
     }
 
     // guardo el último commit SHA antes de hacer merge

@@ -79,4 +79,23 @@ export default {
     },
     code: 'MERGE_FROM_SOURCE',
   },
+
+  GITHUB_AUTH_CONFIG_BAD_FORMAT: {
+    message: chalk.red(
+      `☠️ Se encontró archivo con los credenciales de Github pero no exporta un objeto ☠️`
+    ),
+    code: 'GITHUB_AUTH_CONFIG_BAD_FORMAT',
+  },
+  GITHUB_AUTH_CONFIG_NOT_USERNAME: {
+    message: chalk.red(
+      `☠️ Se encontró archivo con los credenciales de Github pero no se encontró el username de su cuenta en github. ☠️`
+    ),
+    code: 'GITHUB_AUTH_CONFIG_NOT_USERNAME',
+  },
+  GITHUB_AUTH_CONFIG_NOT_PASSWORD: {
+    message: chalk.red(
+      `☠️ Se encontró archivo con los credenciales de Github pero no se encontró el password de su cuenta en github. ☠️`
+    ),
+    code: 'GITHUB_AUTH_CONFIG_NOT_PASSWORD',
+  },
 }
