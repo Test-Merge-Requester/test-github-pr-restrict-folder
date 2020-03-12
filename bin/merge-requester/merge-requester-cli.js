@@ -19,7 +19,8 @@ const exec = util.promisify(execSync)
 const IS_WINDOWS = os.platform().indexOf('win32') > -1
 const LOG = console.log
 
-export default async function cli() {
+// eslint-disable-next-line import/prefer-default-export
+export async function cli() {
   let currentBranch = null
   try {
     LOG(chalk.yellow(figlet.textSync('Merge Requester')))
