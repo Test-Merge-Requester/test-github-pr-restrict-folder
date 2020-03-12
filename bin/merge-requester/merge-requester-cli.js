@@ -204,17 +204,18 @@ export async function cli() {
 
     // Me traigo los ultimos cambios del origin
     // del branch de destino
-    const changesInOrigin = { changes: 0 }
-    const changesInUpstream = { changes: 0 }
+    let conflictsWihtOrigin = 0
+    let conflictsWithUpstream = 0
     try {
-      const response = await git().fetch(
+      await git().fetch(
         `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
         targetBranch
       )
-      const response2 = await git().merge([`origin/${targetBranch}`])
-      // changesInOrigin = summary
-      console.log('response origin', response)
-      console.log('response origin2', response2)
+      const { conflicts } = await git().merge([`origin/${targetBranch}`])
+
+      if (conflicts.length) {
+        conflictsWihtOrigin = conflicts.length
+      }
     } catch (error) {
       const { message, ...rest } = errors.PULL_FROM_ORIGIN_TARGET_BRANCH
       throw new StandardError(
@@ -226,32 +227,21 @@ export async function cli() {
     // Me traigo los ultimos cambios del upstream
     // del branch de destino
     try {
-      const response = await git().fetch(
+      await git().fetch(
         `https://${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO}`,
         targetBranch
       )
-      const response2 = await git().merge([`upstream/${targetBranch}`])
-      console.log('response upstream', response)
-      console.log('response upstream2', response2)
+      const { conflicts } = await git().merge([`upstream/${targetBranch}`])
 
-      // changesInUpstream = summary
+      if (conflicts.length) {
+        conflictsWithUpstream = conflicts.length
+      }
     } catch (error) {
       const { message, ...rest } = errors.PULL_FROM_UPSTREAM_TARGET_BRANCH
       throw new StandardError(
         message({ error: error.message, targetBranch }),
         rest
       )
-    }
-
-    if (changesInOrigin.changes > 0 || changesInUpstream.changes > 0) {
-      try {
-        await git()
-          .add('.')
-          .commit('Merge changes from upstream and origin before Pull Request')
-      } catch (error) {
-        const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
-        throw new StandardError(message, rest)
-      }
     }
 
     // guardo el último commit SHA antes de hacer merge
@@ -278,14 +268,16 @@ export async function cli() {
       )
     }
 
-    try {
-      await git()
-        .add('.')
-        .commit('Merge changes from upstream and origin before Pull Request')
-    } catch (error) {
-      const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
-      throw new StandardError(message, rest)
-    }
+    // hacer push origin branch destino
+
+    // try {
+    //   await git()
+    //     .add('.')
+    //     .commit('Merge changes from upstream and origin before Pull Request')
+    // } catch (error) {
+    //   const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
+    //   throw new StandardError(message, rest)
+    // }
   } catch (error) {
     if (error && error.code) {
       LOG(error.message)
