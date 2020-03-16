@@ -1,2 +1,4 @@
 hola file 1
 new line in file1
+
+hola
