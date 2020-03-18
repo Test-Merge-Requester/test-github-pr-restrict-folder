@@ -32,6 +32,7 @@ export async function cli() {
   let currentBranch = null
   try {
     await clear()
+    LOG('')
     LOG(chalk.yellow(figlet.textSync('Merge Requester')))
 
     // Definición de variables
