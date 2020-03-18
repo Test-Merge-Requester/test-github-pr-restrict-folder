@@ -139,7 +139,7 @@ export default {
     code: 'NOT_CHANGES_FOUND',
     message({ sourceBranch, targetBranch }) {
       return chalk.red(
-        `☠️ No hay diferencias entre los branch el branch de origen ${chalk.white(
+        `☠️ No hay diferencias entre el branch de origen ${chalk.white(
           sourceBranch
         )} y el branch de destino ${chalk.white(targetBranch)}  ☠️`
       )
