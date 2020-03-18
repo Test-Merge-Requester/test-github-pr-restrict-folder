@@ -518,7 +518,10 @@ export async function cli() {
       `module.exports = [${previousAddedFiles.map(i => `'${i}'`).join(', ')}]`
     )
 
+    console.log('pullRequestUri', pullRequestUri)
     await open(pullRequestUri)
+
+    await git().checkout(currentBranch)
   } catch (error) {
     if (error && error.code) {
       LOG(error.message)
