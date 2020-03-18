@@ -215,7 +215,7 @@ export async function cli() {
 
     // diff targetBranch..sourceBranch
     const { stdout: differencesBetweenBranches } = await exec(
-      `git diff ${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
+      `git diff upstream/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
     )
 
     if (!differencesBetweenBranches) {
@@ -260,7 +260,7 @@ export async function cli() {
       try {
         // se hace merge de los cambios que hay en el remote origin del branch de destino seleccionado
         // En caso de conflictos se guardan
-
+        console.log('here')
         const { conflicts } = await git()
           .silent(true)
           .merge([`origin/${targetBranch}`])
@@ -286,6 +286,8 @@ export async function cli() {
     // se hace merge de los cambios que hay en el remote upstream del branch de destino seleccionado
     // En caso de conflictos se guardan
     try {
+      console.log('here2')
+
       const { conflicts } = await git()
         .silent(true)
         .merge([`upstream/${targetBranch}`])
@@ -316,6 +318,8 @@ export async function cli() {
 
     // hacer el merge de los cambios nuevos del origen
     try {
+      console.log('here3')
+
       await exec(`git checkout ${sourceBranch} ${filesAndDirectoriesToMerge}`)
     } catch (error) {
       const { message, ...rest } = errors.MERGE_FROM_SOURCE
@@ -337,7 +341,10 @@ export async function cli() {
     try {
       await git()
         .silent(true)
-        .push('origin', targetBranch)
+        .push(
+          `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
+          targetBranch
+        )
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
