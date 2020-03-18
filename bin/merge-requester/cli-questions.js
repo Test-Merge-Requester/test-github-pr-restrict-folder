@@ -1,4 +1,4 @@
-import { branches } from './merge-requester-config'
+import { branches } from './config'
 
 function isEmail(username) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)

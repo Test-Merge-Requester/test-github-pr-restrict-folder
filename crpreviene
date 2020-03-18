@@ -1,0 +1,32 @@
+Script compra crpreviene
+https://crpreviene.correos.go.cr/orden/create
+
+$('#tipo').val(1)
+$('#identificacion').val('113850827')
+$('#nombre').val('Francisco')
+$('#apellido').val('Cerdas')
+$('#apellido_2').val('Ureña')
+$('#telefono').val('87140634')
+$('#correo').val('chicus12@gmail.com')
+siguiente(1)
+
+
+const cantidad  = document.getElementById('cantidad')
+cantidad.value = 2
+cantidad.dispatchEvent(new Event('change'))
+const provinciaRef  = document.getElementById('provincia')
+provinciaRef.value = 1
+provinciaRef.dispatchEvent(new Event('change'))
+const cantonRef  = document.getElementById('canton')
+cantonRef.value = 1
+cantonRef.dispatchEvent(new Event('change'))
+const distritoRef  = document.getElementById('distrito')
+distritoRef.value = 8
+distritoRef.dispatchEvent(new Event('change'))
+document.getElementById("terminos").checked = true
+pagar()
+
+
+
+
+
