@@ -113,12 +113,7 @@ export async function cli() {
 
     // Hacer fetch del remote origin del branch elegido como destino
     try {
-      await git()
-        .silent(true)
-        .fetch(
-          `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
-          targetBranch
-        )
+      await exec('hub fetch origin')
     } catch (error) {
       if (
         (error.message.match(/invalid/i) && error.message.match(/username/i)) ||
@@ -145,17 +140,9 @@ export async function cli() {
       }
     }
 
-    console.log(
-      `https: //${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO} ${targetBranch}`
-    )
     // Hacer fetch del remote upstream del branch elegido como destino
     try {
-      await git()
-        .silent(true)
-        .fetch(
-          `https://${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO}`,
-          targetBranch
-        )
+      await exec('hub fetch upstream')
     } catch (error) {
       if (
         (error.message.match(/invalid/i) && error.message.match(/username/i)) ||
