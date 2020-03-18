@@ -401,10 +401,14 @@ export async function cli() {
       let actionToExecute = `hub pull-request -f -m "new pull request by ${githubUsername}" -h ${githubUsername}:${targetBranch} -b ${GITHUB_ORGANIZATION}:${targetBranch}`
 
       const configuration = config[targetBranch]
+
       if (configuration.reviewers && configuration.reviewers.length) {
-        actionToExecute += ` -r ${configuration.reviewers
+        const reviewers = configuration.reviewers
           .filter(r => r !== githubUsername)
-          .join(',')}`
+          .join(',')
+        if (reviewers && reviewers.length) {
+          actionToExecute += ` -r ${reviewers}`
+        }
       }
 
       if (configuration.labels && configuration.labels.length) {
@@ -521,7 +525,7 @@ export async function cli() {
     )
 
     console.log('pullRequestUri', pullRequestUri)
-    await open(pullRequestUri.replace('\n'))
+    await open(pullRequestUri.replace('\n', ''))
 
     await git().checkout(currentBranch)
   } catch (error) {
