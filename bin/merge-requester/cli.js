@@ -213,7 +213,6 @@ export async function cli() {
 
     const filesAndDirectoriesToMerge = config[targetBranch].whitelist.join(' ')
 
-    console.log('filesAndDirectoriesToMerge', filesAndDirectoriesToMerge)
     // diff targetBranch..sourceBranch
     const { stdout: differencesBetweenBranches } = await exec(
       `git diff upstream/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
@@ -261,7 +260,6 @@ export async function cli() {
       try {
         // se hace merge de los cambios que hay en el remote origin del branch de destino seleccionado
         // En caso de conflictos se guardan
-        console.log('here')
         const { conflicts } = await git()
           .silent(true)
           .merge([`origin/${targetBranch}`])
@@ -287,8 +285,6 @@ export async function cli() {
     // se hace merge de los cambios que hay en el remote upstream del branch de destino seleccionado
     // En caso de conflictos se guardan
     try {
-      console.log('here2')
-
       const { conflicts } = await git()
         .silent(true)
         .merge([`upstream/${targetBranch}`])
@@ -319,8 +315,6 @@ export async function cli() {
 
     // hacer el merge de los cambios nuevos del origen
     try {
-      console.log('here3')
-
       await exec(`git checkout ${sourceBranch} ${filesAndDirectoriesToMerge}`)
     } catch (error) {
       const { message, ...rest } = errors.MERGE_FROM_SOURCE
@@ -346,7 +340,6 @@ export async function cli() {
           `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
           targetBranch
         )
-      console.log('hola')
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
@@ -357,11 +350,11 @@ export async function cli() {
 
     try {
       // listar los Pull Requesta que están abiertos actualmente para el branch de destino
-      // la lista viene en format0: numero del pr|autor del pr|branch del pr salto de línea
+      // la lista viene en formato: numero del pr|autor del pr|branch del pr salto de línea
       const { stdout: listOfOpenPR } = await exec(
         `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
       )
-      console.log('holassss')
+
       if (listOfOpenPR && listOfOpenPR.length) {
         listOfOpenPR.split('\n').forEach(pr => {
           if (pr) {
@@ -416,14 +409,12 @@ export async function cli() {
         actionToExecute += ` -l ${configuration.labels.join(',')}`
       }
 
-      console.log('configuration', configuration)
-      console.log('actionToExecute', actionToExecute)
       try {
         const { stdout: pullRequestCreated } = await exec(actionToExecute)
         openPullRequestNumber = pullRequestCreated.substring(
           pullRequestCreated.lastIndexOf('/') + 1
         )
-        console.log('holaasasdasdasd')
+
         pullRequestUri = pullRequestCreated
       } catch (error) {
         const { message, ...rest } = errors.CREATING_PULL_REQUEST
@@ -525,7 +516,6 @@ export async function cli() {
       `module.exports = [${previousAddedFiles.map(i => `'${i}'`).join(', ')}]`
     )
 
-    console.log('pullRequestUri', pullRequestUri)
     await open(pullRequestUri.replace('\n', ''))
 
     await git().checkout(currentBranch)
