@@ -345,6 +345,7 @@ export async function cli() {
           `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
           targetBranch
         )
+      console.log('hola')
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
@@ -359,7 +360,7 @@ export async function cli() {
       const { stdout: listOfOpenPR } = await exec(
         `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
       )
-
+      console.log('holassss')
       if (listOfOpenPR && listOfOpenPR.length) {
         listOfOpenPR.split('\n').forEach(pr => {
           if (pr) {
@@ -415,6 +416,7 @@ export async function cli() {
         openPullRequestNumber = pullRequestCreated.substring(
           pullRequestCreated.lastIndexOf('/') + 1
         )
+        console.log('holaasasdasdasd')
         pullRequestUri = pullRequestCreated
       } catch (error) {
         const { message, ...rest } = errors.CREATING_PULL_REQUEST
