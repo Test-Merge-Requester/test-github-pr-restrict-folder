@@ -145,6 +145,9 @@ export async function cli() {
       }
     }
 
+    console.log(
+      `https: //${githubUsername}:${githubPassword}@github.com/${GITHUB_ORGANIZATION}/${REPO} ${targetBranch}`
+    )
     // Hacer fetch del remote upstream del branch elegido como destino
     try {
       await git()
