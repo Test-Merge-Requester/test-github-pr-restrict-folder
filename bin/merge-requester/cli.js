@@ -213,6 +213,7 @@ export async function cli() {
 
     const filesAndDirectoriesToMerge = config[targetBranch].whitelist.join(' ')
 
+    console.log('filesAndDirectoriesToMerge', filesAndDirectoriesToMerge)
     // diff targetBranch..sourceBranch
     const { stdout: differencesBetweenBranches } = await exec(
       `git diff upstream/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
