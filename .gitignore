@@ -107,3 +107,5 @@ bin/merge-requester/.env.github
 bin/merge-requester/index.test.js
 bin/merge-requester/test.js
 bin/merge-requester/pr*
+
+.vscode
