@@ -411,6 +411,8 @@ export async function cli() {
         actionToExecute += ` -l ${configuration.labels.join(',')}`
       }
 
+      console.log('configuration', configuration)
+      console.log('actionToExecute', actionToExecute)
       try {
         const { stdout: pullRequestCreated } = await exec(actionToExecute)
         openPullRequestNumber = pullRequestCreated.substring(
@@ -519,7 +521,7 @@ export async function cli() {
     )
 
     console.log('pullRequestUri', pullRequestUri)
-    await open(pullRequestUri)
+    await open(pullRequestUri.replace('\n'))
 
     await git().checkout(currentBranch)
   } catch (error) {
