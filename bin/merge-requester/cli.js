@@ -398,7 +398,7 @@ export async function cli() {
       // -b: branch destino
       // -r: reviewers
       // -l: labels/tags
-      let actionToExecute = `hub pull-request -m "new pull request by ${githubUsername}" -h ${githubUsername}:${targetBranch} -b ${GITHUB_ORGANIZATION}:${targetBranch}`
+      let actionToExecute = `hub pull-request -f -m "new pull request by ${githubUsername}" -h ${githubUsername}:${targetBranch} -b ${GITHUB_ORGANIZATION}:${targetBranch}`
 
       const configuration = config[targetBranch]
       if (configuration.reviewers && configuration.reviewers.length) {
