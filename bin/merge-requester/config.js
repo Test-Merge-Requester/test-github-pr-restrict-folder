@@ -50,6 +50,18 @@ export const config = {
   develop: {
     whitelist: [...commons.files, 'bin/'],
     reviewers: ['chicus12'],
+    labels: ['test', 'test2'],
+    pm2: {
+      name: 'branch1',
+      path: 'path',
+      executionScript: 'yarn start:project:environment',
+    },
+    steps: {
+      preconditions: commons.preconditions,
+      installation: commons.installation,
+      verification: commons.verification,
+      rollback: commons.rollback,
+    },
   },
   branch2: {
     whitelist: [...commons.files, 'folder2/'],
