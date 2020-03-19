@@ -189,4 +189,12 @@ export default {
     code: 'WINDOWS_NOT_SUPPORTED',
     message: chalk.red('☠️ Este script no es soportado en Windows ☠️'),
   },
+  NOT_UPSTREAM_TARGET_BRANCH: {
+    code: 'NOT_UPSTREAM_TARGET_BRANCH',
+    message({ error, targetBranch }) {
+      return chalk.red(
+        `☠️ No se encontró el branch ${targetBranch} del remote upstream. ☠️\n${error}`
+      )
+    },
+  },
 }

@@ -14,6 +14,7 @@ import { exec as execSync } from 'child_process'
 import { join } from 'path'
 import { format } from 'date-fns'
 import open from 'open'
+import { createBasicAuth } from '@octokit/auth-basic'
 
 import errors from './errors'
 import questions from './cli-questions'
@@ -38,6 +39,7 @@ export async function cli() {
     // Definición de variables
     let githubUsername = null
     let githubPassword = null
+    let githubToken = null
     let mergeWithOriginRequired = true
     let conflictsWithOrigin = 0
     let conflictsWithUpstream = 0
@@ -68,6 +70,7 @@ export async function cli() {
 
     githubUsername = process.env.GITHUB_USER
     githubPassword = process.env.GITHUB_PASSWORD
+    githubToken = process.env.GITHUB_TOKEN
 
     try {
       // hub es de github, se tiene que instalar en la maquina, se usa el binario para hacer
@@ -84,6 +87,60 @@ export async function cli() {
       // Tienen que tener configurado el upstream, si no mostrar error ↓
       const { message, ...rest } = errors.NOT_UPSTREAM_REMOTE
       throw new StandardError(message, rest)
+    }
+
+    const status = await git().status()
+
+    if (
+      status.not_added.length ||
+      status.conflicted.length ||
+      status.created.length ||
+      status.deleted.length ||
+      status.modified.length ||
+      status.renamed.length ||
+      status.staged.length
+    ) {
+    }
+
+    try {
+      // Se obtiene el token de github para ser utilizado en las demás operacion
+      // Esto esta deprecado:
+      // OJO: https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
+      // La solucion sería que cada usuario cree su github_token y lo guarde en el file .env.github
+      const auth = createBasicAuth({
+        username: githubUsername,
+        password: githubPassword,
+        async on2Fa() {
+          // prompt user for the one-time password retrieved via SMS or authenticator app
+          const { twoFa } = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'twoFa',
+              message: 'Two-factor authentication Code:',
+            },
+          ])
+          return twoFa
+        },
+        token: {
+          scopes: ['repo'],
+        },
+      })
+
+      const tokenAuthentication = await auth({
+        type: 'token',
+      })
+      githubToken = tokenAuthentication.token
+      process.env.GITHUB_TOKEN = githubToken
+    } catch (error) {
+      if (error.message.match(/Bad credentials/i)) {
+        const { message, ...rest } = errors.GITHUB_BAD_CREDENTIALS
+        throw new StandardError(message(error.message), {
+          ...rest,
+          stack: error.stack,
+        })
+      } else {
+        throw error
+      }
     }
 
     // CLI: seleccione el branch de destino
@@ -113,19 +170,10 @@ export async function cli() {
 
     // Hacer fetch del remote origin del branch elegido como destino
     try {
-      await exec('hub fetch origin')
+      await git()
+        .silent(true)
+        .fetch('origin', targetBranch)
     } catch (error) {
-      if (
-        (error.message.match(/invalid/i) && error.message.match(/username/i)) ||
-        (error.message.match(/invalid/i) && error.message.match(/password/i))
-      ) {
-        const { message, ...rest } = errors.GITHUB_BAD_CREDENTIALS
-        throw new StandardError(message(error.message), {
-          ...rest,
-          stack: error.stack,
-        })
-      }
-
       if (error.message.match(/couldn't find remote ref/i)) {
         // no se encontro el branch en el origin
         // no es necesario hacer merge ya que no existe
@@ -142,17 +190,16 @@ export async function cli() {
 
     // Hacer fetch del remote upstream del branch elegido como destino
     try {
-      await exec('hub fetch upstream')
+      await git()
+        .silent(true)
+        .fetch('upstream', targetBranch)
     } catch (error) {
-      if (
-        (error.message.match(/invalid/i) && error.message.match(/username/i)) ||
-        (error.message.match(/invalid/i) && error.message.match(/password/i))
-      ) {
-        const { message, ...rest } = errors.GITHUB_BAD_CREDENTIALS
-        throw new StandardError(message(error.message), {
-          ...rest,
-          stack: error.stack,
-        })
+      if (error.message.match(/couldn't find remote ref/i)) {
+        const { message, ...rest } = errors.NOT_UPSTREAM_TARGET_BRANCH
+        throw new StandardError(
+          message({ error: error.message, targetBranch }),
+          { ...rest, stack: error.stack }
+        )
       } else {
         const { message, ...rest } = errors.FETCH_FROM_UPSTREAM_TARGET_BRANCH
         throw new StandardError(
