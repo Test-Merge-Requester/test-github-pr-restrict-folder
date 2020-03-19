@@ -72,6 +72,8 @@ export async function cli() {
     githubPassword = process.env.GITHUB_PASSWORD
     githubToken = process.env.GITHUB_TOKEN
 
+    process.env.HUB_PROTOCOL = 'https'
+
     try {
       // hub es de github, se tiene que instalar en la maquina, se usa el binario para hacer
       // pull request. Se comprueba que exista
