@@ -197,4 +197,14 @@ export default {
       )
     },
   },
+  CHANGES_NOT_COMMITED: {
+    code: 'CHANGES_NOT_COMMITED',
+    message(status) {
+      return chalk.red(
+        `☠️ Actualmente tiene una serie de archivos que han sido modificados y no se han commiteado o stageado los cambios en el branch ${
+          status.current
+        }. ☠️\n${chalk.white(JSON.stringify(status))}`
+      )
+    },
+  },
 }

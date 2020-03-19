@@ -100,46 +100,54 @@ export async function cli() {
       status.renamed.length ||
       status.staged.length
     ) {
+      const { message, ...rest } = errors.CHANGES_NOT_COMMITED
+      throw new StandardError(message(status), { ...rest })
     }
 
-    try {
-      // Se obtiene el token de github para ser utilizado en las demás operacion
-      // Esto esta deprecado:
-      // OJO: https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
-      // La solucion sería que cada usuario cree su github_token y lo guarde en el file .env.github
-      const auth = createBasicAuth({
-        username: githubUsername,
-        password: githubPassword,
-        async on2Fa() {
-          // prompt user for the one-time password retrieved via SMS or authenticator app
-          const { twoFa } = await inquirer.prompt([
-            {
-              type: 'input',
-              name: 'twoFa',
-              message: 'Two-factor authentication Code:',
-            },
-          ])
-          return twoFa
-        },
-        token: {
-          scopes: ['repo'],
-        },
-      })
-
-      const tokenAuthentication = await auth({
-        type: 'token',
-      })
-      githubToken = tokenAuthentication.token
-      process.env.GITHUB_TOKEN = githubToken
-    } catch (error) {
-      if (error.message.match(/Bad credentials/i)) {
-        const { message, ...rest } = errors.GITHUB_BAD_CREDENTIALS
-        throw new StandardError(message(error.message), {
-          ...rest,
-          stack: error.stack,
+    if (!githubToken) {
+      try {
+        // Se obtiene el token de github para ser utilizado en las demás operacion
+        // Esto esta deprecado:
+        // OJO: https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
+        // La solucion sería que cada usuario cree su github_token y lo guarde en el file .env.github
+        const auth = createBasicAuth({
+          username: githubUsername,
+          password: githubPassword,
+          async on2Fa() {
+            // prompt user for the one-time password retrieved via SMS or authenticator app
+            const { twoFa } = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'twoFa',
+                message: 'Two-factor authentication Code:',
+              },
+            ])
+            return twoFa
+          },
+          token: {
+            scopes: ['repo'],
+          },
         })
-      } else {
-        throw error
+
+        const tokenAuthentication = await auth({
+          type: 'token',
+        })
+        githubToken = tokenAuthentication.token
+        process.env.GITHUB_TOKEN = githubToken
+        await appendAsync(
+          join(__dirname, '.env.github'),
+          `\nGITHUB_TOKEN=${githubToken}`
+        )
+      } catch (error) {
+        if (error.message.match(/Bad credentials/i)) {
+          const { message, ...rest } = errors.GITHUB_BAD_CREDENTIALS
+          throw new StandardError(message(error.message), {
+            ...rest,
+            stack: error.stack,
+          })
+        } else {
+          throw error
+        }
       }
     }
 
