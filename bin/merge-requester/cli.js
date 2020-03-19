@@ -429,7 +429,7 @@ export async function cli() {
       // se obtienen los archivos anteriormente agregados en un PR activo
       // eslint-disable-next-line import/no-dynamic-require
       console.log('_d', __dirname)
-      previousAddedFiles = require(`./pr${openPullRequestNumber}/files.js`)
+      previousAddedFiles = require(`${__dirname}/pr${openPullRequestNumber}/files.js`)
       const { stdout: currentPR } = await exec(
         `hub pr show -u ${openPullRequestNumber}`
       )
