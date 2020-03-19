@@ -434,6 +434,7 @@ export async function cli() {
         `hub pr show -u ${openPullRequestNumber}`
       )
       pullRequestUri = currentPR
+      pullRequestLocalFolderName = `pr${openPullRequestNumber}`
     } else {
       // se crea el Pull Request en Github
       // Flags a tomar en cuenta
