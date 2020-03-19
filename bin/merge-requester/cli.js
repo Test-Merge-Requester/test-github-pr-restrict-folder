@@ -382,6 +382,7 @@ export async function cli() {
       await git()
         .silent(true)
         .push('origin', targetBranch)
+      console.log('pusheo')
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
