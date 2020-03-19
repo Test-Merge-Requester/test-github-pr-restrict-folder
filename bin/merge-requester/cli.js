@@ -381,10 +381,7 @@ export async function cli() {
     try {
       await git()
         .silent(true)
-        .push(
-          `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
-          targetBranch
-        )
+        .push('origin', targetBranch)
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
