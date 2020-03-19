@@ -570,6 +570,8 @@ export async function cli() {
     console.log('here')
     await git().checkout(currentBranch)
   } catch (error) {
+    console.error(error)
+
     if (error && error.code) {
       LOG(error.message)
     } else {
