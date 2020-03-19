@@ -560,6 +560,8 @@ export async function cli() {
       )
     }
 
+    console.log('pullRequestLocalFolderName', pullRequestLocalFolderName)
+
     await writeFileAsync(
       join(__dirname, pullRequestLocalFolderName, 'files.js'),
       `module.exports = [${previousAddedFiles.map(i => `'${i}'`).join(', ')}]`
