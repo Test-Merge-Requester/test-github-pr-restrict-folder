@@ -189,4 +189,22 @@ export default {
     code: 'WINDOWS_NOT_SUPPORTED',
     message: chalk.red('☠️ Este script no es soportado en Windows ☠️'),
   },
+  NOT_UPSTREAM_TARGET_BRANCH: {
+    code: 'NOT_UPSTREAM_TARGET_BRANCH',
+    message({ error, targetBranch }) {
+      return chalk.red(
+        `☠️ No se encontró el branch ${targetBranch} del remote upstream. ☠️\n${error}`
+      )
+    },
+  },
+  CHANGES_NOT_COMMITED: {
+    code: 'CHANGES_NOT_COMMITED',
+    message(status) {
+      return chalk.red(
+        `☠️ Actualmente tiene una serie de archivos que han sido modificados y no se han commiteado o stageado los cambios en el branch ${
+          status.current
+        }. ☠️\n${chalk.white(JSON.stringify(status))}`
+      )
+    },
+  },
 }

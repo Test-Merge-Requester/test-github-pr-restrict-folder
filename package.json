@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/chicus12/test-github-pr-restrict-folder#readme",
   "dependencies": {
+    "@octokit/auth-basic": "^1.4.1",
     "chalk": "^3.0.0",
     "clear": "^0.1.0",
     "command-exists": "^1.2.8",
