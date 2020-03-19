@@ -381,9 +381,10 @@ export async function cli() {
     console.log('pusheo1')
 
     try {
-      await git()
-        .silent(true)
-        .push('origin', targetBranch)
+      await exec(`hub push origin ${targetBranch}`)
+      // await git()
+      //   .silent(true)
+      //   .push('origin', targetBranch)
       console.log('pusheo')
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
