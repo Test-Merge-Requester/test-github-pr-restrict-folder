@@ -125,6 +125,7 @@ export async function cli() {
             return twoFa
           },
           token: {
+            note: `pull-requester${new Date()}`,
             scopes: ['repo'],
           },
         })
