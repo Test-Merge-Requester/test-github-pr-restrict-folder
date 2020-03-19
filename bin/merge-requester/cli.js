@@ -379,15 +379,13 @@ export async function cli() {
     }
 
     // Realizar push de los cambios al branch de destino en el remote de origin
-    console.log('pusheo1')
-
-    console.log('process.env.GITHUB_TOKEN', process.env.GITHUB_TOKEN)
     try {
-      // await exec(`hub push origin ${targetBranch}`)
-      // await git()
-      //   .silent(true)
-      //   .push('origin', targetBranch)
-      console.log('pusheo')
+      await git()
+        .silent(true)
+        .push(
+          `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
+          targetBranch
+        )
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
@@ -429,7 +427,6 @@ export async function cli() {
       // se obtienen los archivos anteriormente agregados en un PR activo
       // eslint-disable-next-line import/no-dynamic-require
       previousAddedFiles = require(`./pr${openPullRequestNumber}/files.js`)
-      console.log('here')
       const { stdout: currentPR } = await exec(
         `hub pr show -u ${openPullRequestNumber}`
       )
@@ -561,8 +558,6 @@ export async function cli() {
       )
     }
 
-    console.log('pullRequestLocalFolderName', pullRequestLocalFolderName)
-
     await writeFileAsync(
       join(__dirname, pullRequestLocalFolderName, 'files.js'),
       `module.exports = [${previousAddedFiles.map(i => `'${i}'`).join(', ')}]`
@@ -570,11 +565,8 @@ export async function cli() {
 
     await open(pullRequestUri.replace('\n', ''))
 
-    console.log('here')
     await git().checkout(currentBranch)
   } catch (error) {
-    console.error(error)
-
     if (error && error.code) {
       LOG(error.message)
     } else {
