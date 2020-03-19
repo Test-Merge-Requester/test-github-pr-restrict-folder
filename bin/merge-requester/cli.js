@@ -125,7 +125,7 @@ export async function cli() {
             return twoFa
           },
           token: {
-            note: `pull-requester${new Date()}`,
+            note: `Merge Requester command-line tool made for create pull request automatically`,
             scopes: ['repo'],
           },
         })
