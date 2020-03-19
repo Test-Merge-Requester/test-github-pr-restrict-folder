@@ -567,6 +567,7 @@ export async function cli() {
 
     await open(pullRequestUri.replace('\n', ''))
 
+    console.log('here')
     await git().checkout(currentBranch)
   } catch (error) {
     if (error && error.code) {
