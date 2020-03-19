@@ -380,9 +380,10 @@ export async function cli() {
 
     // Realizar push de los cambios al branch de destino en el remote de origin
     console.log('pusheo1')
+
     console.log('process.env.GITHUB_TOKEN', process.env.GITHUB_TOKEN)
     try {
-      await exec(`hub push origin ${targetBranch}`)
+      // await exec(`hub push origin ${targetBranch}`)
       // await git()
       //   .silent(true)
       //   .push('origin', targetBranch)
