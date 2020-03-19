@@ -378,6 +378,8 @@ export async function cli() {
     }
 
     // Realizar push de los cambios al branch de destino en el remote de origin
+    console.log('pusheo1')
+
     try {
       await git()
         .silent(true)
