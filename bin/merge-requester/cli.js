@@ -72,8 +72,6 @@ export async function cli() {
     githubPassword = process.env.GITHUB_PASSWORD
     githubToken = process.env.GITHUB_TOKEN
 
-    process.env.HUB_PROTOCOL = 'https'
-
     try {
       // hub es de github, se tiene que instalar en la maquina, se usa el binario para hacer
       // pull request. Se comprueba que exista
@@ -383,7 +381,6 @@ export async function cli() {
     // Realizar push de los cambios al branch de destino en el remote de origin
     console.log('pusheo1')
     console.log('process.env.GITHUB_TOKEN', process.env.GITHUB_TOKEN)
-    console.log('targetBranch', targetBranch)
     try {
       await exec(`hub push origin ${targetBranch}`)
       // await git()
