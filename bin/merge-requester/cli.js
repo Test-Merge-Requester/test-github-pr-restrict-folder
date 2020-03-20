@@ -466,17 +466,12 @@ export async function cli() {
     // de momento se guarda la informacion en archivos, por facilidad y tiempo
     // CONS: no se podría actualizar la info de un PR abierto desde otra maquina
     if (openPullRequestNumber) {
-      console.log('shit', openPullRequestNumber)
-      console.log('shit', openPullRequestNumber === 16)
-      console.log('shit', openPullRequestNumber === '16')
       // se obtienen los archivos anteriormente agregados en un PR activo
       // eslint-disable-next-line import/no-dynamic-require
       previousAddedFiles = require(`./pr${openPullRequestNumber}/files`)
-      console.log('pre', previousAddedFiles)
       const { stdout: currentPR } = await exec(
         `hub pr show -u ${openPullRequestNumber}`
       )
-      console.log('pre', previousAddedFiles)
 
       pullRequestUri = currentPR
       pullRequestLocalFolderName = `pr${openPullRequestNumber}`
