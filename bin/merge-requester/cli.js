@@ -601,7 +601,7 @@ export async function cli() {
     if (newFiles.length) {
       await appendAsync(
         join(__dirname, pullRequestLocalFolderName, 'INSTRUCTIONS.txt'),
-        newFiles.join('\n')
+        `\n${newFiles.join('\n')}`
       )
     }
 
