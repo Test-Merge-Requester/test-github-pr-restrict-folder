@@ -278,7 +278,7 @@ export async function cli() {
     await spinner.start()
     // diff targetBranch..sourceBranch
     const { stdout: differencesBetweenBranches } = await exec(
-      `git diff upstream/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
+      `git diff origin/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
     )
     await spinner.stop()
 
@@ -561,7 +561,7 @@ export async function cli() {
     // el diff respondería algo como: M README.md
     // En donde M es la acción que ocurrió (Crear, Modificar, etc), basicamente gitActionTypes tiene mapeadas todas las acciones para que lo tome como referencia
     const { stdout: diff } = await exec(
-      `git diff origin/${targetBranch} ${targetBranch} --name-status`
+      `git diff upstream/${targetBranch} ${targetBranch} --name-status`
     )
 
     if (diff && diff.length) {
