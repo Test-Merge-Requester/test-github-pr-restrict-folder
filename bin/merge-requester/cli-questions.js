@@ -31,7 +31,7 @@ export default {
       {
         type: 'confirm',
         name: 'confirmDifferencesBetweenBranches',
-        message: `↑ La lista anterior, son los fuentes de ${sourceBranch} que se van a enviar como Merge Request hacia ${targetBranch}. Desea continuar?`,
+        message: `↑ La lista anterior, son los fuentes del branch local ${sourceBranch} que se van a enviar como Merge Request hacia el branch upstream/${targetBranch}. Desea continuar?`,
         default: true,
       },
     ]

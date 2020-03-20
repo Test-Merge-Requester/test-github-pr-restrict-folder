@@ -1,3 +1,7 @@
 hola file 2
 new line in file2
 otra linea
+
+vamos
+
+otra mas

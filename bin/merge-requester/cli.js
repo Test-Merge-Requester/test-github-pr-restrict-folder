@@ -15,6 +15,7 @@ import { join } from 'path'
 import { format } from 'date-fns'
 import open from 'open'
 import { createBasicAuth } from '@octokit/auth-basic'
+import ora from 'ora'
 
 import errors from './errors'
 import questions from './cli-questions'
@@ -27,6 +28,19 @@ const writeFileAsync = util.promisify(fs.writeFile)
 
 const IS_WINDOWS = os.platform().indexOf('win32') > -1
 const LOG = console.log
+const spinner = ora()
+
+const isValidStatus = status => {
+  return (
+    status.not_added.length ||
+    status.conflicted.length ||
+    status.created.length ||
+    status.deleted.length ||
+    status.modified.length ||
+    status.renamed.length ||
+    status.staged.length
+  )
+}
 
 // eslint-disable-next-line import/prefer-default-export
 export async function cli() {
@@ -81,7 +95,10 @@ export async function cli() {
       throw new StandardError(message, rest)
     }
 
+    spinner.text = 'Obteniendo los remotes'
+    await spinner.start()
     const { stdout: remotes } = await exec('git remote')
+    await spinner.stop()
 
     if (remotes.indexOf('upstream') === -1) {
       // Tienen que tener configurado el upstream, si no mostrar error ↓
@@ -91,15 +108,7 @@ export async function cli() {
 
     const status = await git().status()
 
-    if (
-      status.not_added.length ||
-      status.conflicted.length ||
-      status.created.length ||
-      status.deleted.length ||
-      status.modified.length ||
-      status.renamed.length ||
-      status.staged.length
-    ) {
+    if (isValidStatus(status)) {
       const { message, ...rest } = errors.CHANGES_NOT_COMMITED
       throw new StandardError(message(status), { ...rest })
     }
@@ -125,7 +134,7 @@ export async function cli() {
             return twoFa
           },
           token: {
-            note: `pull-requester${new Date()}`,
+            note: `Merge Requester command-line tool made for create pull request automatically`,
             scopes: ['repo'],
           },
         })
@@ -177,11 +186,44 @@ export async function cli() {
       throw new StandardError(message(targetBranch), rest)
     }
 
+    try {
+      // listar los Pull Request que están abiertos actualmente para el branch de destino
+      // la lista viene en formato: numero del pr|autor del pr|branch del pr salto de línea
+      spinner.text = `Obteniendo la lista de Pull Request abiertos y verificando si ${githubUsername} tiene uno abierto para el branch ${targetBranch}`
+      await spinner.start()
+      const { stdout: listOfOpenPR } = await exec(
+        `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
+      )
+
+      if (listOfOpenPR && listOfOpenPR.length) {
+        listOfOpenPR.split('\n').forEach(pr => {
+          if (pr) {
+            const [number, author] = pr.split('|')
+            if (author === process.env.GITHUB_USER) {
+              // solo queremos saber los PR creados por el usuario
+              openPullRequestNumber = number
+            }
+          }
+        })
+      }
+
+      await spinner.stop()
+    } catch (error) {
+      const { message, ...rest } = errors.LIST_OPENED_PULL_REQUEST
+      throw new StandardError(message(error.message), {
+        ...rest,
+        stack: error.stack,
+      })
+    }
+
     // Hacer fetch del remote origin del branch elegido como destino
     try {
+      spinner.text = 'Haciendo fetch de lo últimos cambios en origin'
+      await spinner.start()
       await git()
         .silent(true)
         .fetch('origin', targetBranch)
+      await spinner.stop()
     } catch (error) {
       if (error.message.match(/couldn't find remote ref/i)) {
         // no se encontro el branch en el origin
@@ -199,9 +241,12 @@ export async function cli() {
 
     // Hacer fetch del remote upstream del branch elegido como destino
     try {
+      spinner.text = 'Haciendo fetch de lo últimos cambios en upstream'
+      await spinner.start()
       await git()
         .silent(true)
         .fetch('upstream', targetBranch)
+      await spinner.stop()
     } catch (error) {
       if (error.message.match(/couldn't find remote ref/i)) {
         const { message, ...rest } = errors.NOT_UPSTREAM_TARGET_BRANCH
@@ -259,10 +304,17 @@ export async function cli() {
 
     const filesAndDirectoriesToMerge = config[targetBranch].whitelist.join(' ')
 
+    spinner.text = 'Obteniendo las diferencias entre branches'
+    await spinner.start()
     // diff targetBranch..sourceBranch
+    const branchToCompare =
+      openPullRequestNumber > 0
+        ? `origin/${targetBranch}`
+        : `upstream/${targetBranch}`
     const { stdout: differencesBetweenBranches } = await exec(
-      `git diff upstream/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
+      `git diff ${branchToCompare}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
     )
+    await spinner.stop()
 
     if (!differencesBetweenBranches) {
       // no hay cambios en los fuentes, nada para
@@ -273,6 +325,7 @@ export async function cli() {
 
     // Mostrar los fuentes cambiados y preguntar
     // si quiere avanzar
+    LOG('\n\n')
     LOG(differencesBetweenBranches)
     const { confirmDifferencesBetweenBranches } = await inquirer.prompt(
       questions.confirmDifferencesBetweenBranches({
@@ -306,10 +359,12 @@ export async function cli() {
       try {
         // se hace merge de los cambios que hay en el remote origin del branch de destino seleccionado
         // En caso de conflictos se guardan
+        spinner.text = `Realizando merge de los cambios de origin/${targetBranch}`
+        await spinner.start()
         const { conflicts } = await git()
           .silent(true)
           .merge([`origin/${targetBranch}`])
-
+        await spinner.stop
         if (conflicts.length) {
           conflictsWithOrigin = conflicts.length
         }
@@ -331,10 +386,12 @@ export async function cli() {
     // se hace merge de los cambios que hay en el remote upstream del branch de destino seleccionado
     // En caso de conflictos se guardan
     try {
+      spinner.text = `Realizando merge de los cambios de upstream/${targetBranch}`
+      await spinner.start()
       const { conflicts } = await git()
         .silent(true)
         .merge([`upstream/${targetBranch}`])
-
+      await spinner.stop()
       if (conflicts.length) {
         conflictsWithUpstream = conflicts.length
       }
@@ -361,7 +418,10 @@ export async function cli() {
 
     // hacer el merge de los cambios nuevos del origen
     try {
+      spinner.text = `Realizando merge de los cambios del branch local ${sourceBranch} al branch local ${targetBranch}`
+      await spinner.start()
       await exec(`git checkout ${sourceBranch} ${filesAndDirectoriesToMerge}`)
+      await spinner.stop()
     } catch (error) {
       const { message, ...rest } = errors.MERGE_FROM_SOURCE
       throw new StandardError(
@@ -372,49 +432,31 @@ export async function cli() {
 
     // se hace commit de los cambios del merge del paso anterior
     try {
+      spinner.text = 'Realizando commit de los cambios'
+      await spinner.start()
       await git().commit(branches[sourceBranch].label)
+      await spinner.stop()
     } catch (error) {
       const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
       throw new StandardError(message, rest)
     }
 
     // Realizar push de los cambios al branch de destino en el remote de origin
+    // Mae esto pronto no va a servir(usar username:password), jeje, OJO: https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
+    // considerar usar los remotes por ssh ó octokit
     try {
+      spinner.text = `Realizando push de los cambios al origin ${targetBranch}`
+      await spinner.start()
       await git()
         .silent(true)
         .push(
           `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
           targetBranch
         )
+      await spinner.stop()
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
-        ...rest,
-        stack: error.stack,
-      })
-    }
-
-    try {
-      // listar los Pull Requesta que están abiertos actualmente para el branch de destino
-      // la lista viene en formato: numero del pr|autor del pr|branch del pr salto de línea
-      const { stdout: listOfOpenPR } = await exec(
-        `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
-      )
-
-      if (listOfOpenPR && listOfOpenPR.length) {
-        listOfOpenPR.split('\n').forEach(pr => {
-          if (pr) {
-            const [number, author] = pr.split('|')
-            if (author === process.env.GITHUB_USER) {
-              // solo queremos saber los PR creados por el usuario
-              openPullRequestNumber = number
-            }
-          }
-        })
-      }
-    } catch (error) {
-      const { message, ...rest } = errors.LIST_OPENED_PULL_REQUEST
-      throw new StandardError(message(error.message), {
         ...rest,
         stack: error.stack,
       })
@@ -426,10 +468,11 @@ export async function cli() {
     if (openPullRequestNumber) {
       // se obtienen los archivos anteriormente agregados en un PR activo
       // eslint-disable-next-line import/no-dynamic-require
-      previousAddedFiles = require(`./pr${openPullRequestNumber}/files.js`)
+      previousAddedFiles = require(`./pr${openPullRequestNumber}/files`)
       const { stdout: currentPR } = await exec(
         `hub pr show -u ${openPullRequestNumber}`
       )
+
       pullRequestUri = currentPR
       pullRequestLocalFolderName = `pr${openPullRequestNumber}`
     } else {
@@ -457,10 +500,14 @@ export async function cli() {
       }
 
       try {
+        spinner.text = `Creando el Pull Request`
+        await spinner.start()
         const { stdout: pullRequestCreated } = await exec(actionToExecute)
         openPullRequestNumber = pullRequestCreated.substring(
           pullRequestCreated.lastIndexOf('/') + 1
         )
+        openPullRequestNumber = openPullRequestNumber.replace('\n', '')
+        await spinner.stop()
 
         pullRequestUri = pullRequestCreated
       } catch (error) {
@@ -542,9 +589,8 @@ export async function cli() {
                 gitActionTypes[action.toLowerCase()]
               } ${file},1,${format(today, 'dd-MM-yyyy')},Objeto,Objeto`
             )
+            previousAddedFiles.push(file)
           }
-
-          previousAddedFiles.push(file)
         }
 
         return acc
@@ -554,7 +600,7 @@ export async function cli() {
     if (newFiles.length) {
       await appendAsync(
         join(__dirname, pullRequestLocalFolderName, 'INSTRUCTIONS.txt'),
-        newFiles.join('\n')
+        `\n${newFiles.join('\n')}`
       )
     }
 
@@ -572,5 +618,7 @@ export async function cli() {
     } else {
       console.error(error)
     }
+  } finally {
+    spinner.stop()
   }
 }
