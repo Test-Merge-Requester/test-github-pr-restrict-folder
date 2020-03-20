@@ -186,6 +186,36 @@ export async function cli() {
       throw new StandardError(message(targetBranch), rest)
     }
 
+    try {
+      // listar los Pull Request que están abiertos actualmente para el branch de destino
+      // la lista viene en formato: numero del pr|autor del pr|branch del pr salto de línea
+      spinner.text = `Obteniendo la lista de Pull Request abiertos y verificando si ${githubUsername} tiene uno abierto para el branch ${targetBranch}`
+      await spinner.start()
+      const { stdout: listOfOpenPR } = await exec(
+        `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
+      )
+
+      if (listOfOpenPR && listOfOpenPR.length) {
+        listOfOpenPR.split('\n').forEach(pr => {
+          if (pr) {
+            const [number, author] = pr.split('|')
+            if (author === process.env.GITHUB_USER) {
+              // solo queremos saber los PR creados por el usuario
+              openPullRequestNumber = number
+            }
+          }
+        })
+      }
+
+      await spinner.stop()
+    } catch (error) {
+      const { message, ...rest } = errors.LIST_OPENED_PULL_REQUEST
+      throw new StandardError(message(error.message), {
+        ...rest,
+        stack: error.stack,
+      })
+    }
+
     // Hacer fetch del remote origin del branch elegido como destino
     try {
       spinner.text = 'Haciendo fetch de lo últimos cambios en origin'
@@ -277,8 +307,12 @@ export async function cli() {
     spinner.text = 'Obteniendo las diferencias entre branches'
     await spinner.start()
     // diff targetBranch..sourceBranch
+    const branchToCompare =
+      openPullRequestNumber > 0
+        ? `origin/${targetBranch}`
+        : `upstream/${targetBranch}`
     const { stdout: differencesBetweenBranches } = await exec(
-      `git diff origin/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
+      `git diff ${branchToCompare}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
     )
     await spinner.stop()
 
@@ -427,32 +461,6 @@ export async function cli() {
       })
     }
 
-    try {
-      // listar los Pull Request que están abiertos actualmente para el branch de destino
-      // la lista viene en formato: numero del pr|autor del pr|branch del pr salto de línea
-      const { stdout: listOfOpenPR } = await exec(
-        `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
-      )
-
-      if (listOfOpenPR && listOfOpenPR.length) {
-        listOfOpenPR.split('\n').forEach(pr => {
-          if (pr) {
-            const [number, author] = pr.split('|')
-            if (author === process.env.GITHUB_USER) {
-              // solo queremos saber los PR creados por el usuario
-              openPullRequestNumber = number
-            }
-          }
-        })
-      }
-    } catch (error) {
-      const { message, ...rest } = errors.LIST_OPENED_PULL_REQUEST
-      throw new StandardError(message(error.message), {
-        ...rest,
-        stack: error.stack,
-      })
-    }
-
     // Esto se podría mejorar manejando en alguna BD los datos de los PR
     // de momento se guarda la informacion en archivos, por facilidad y tiempo
     // CONS: no se podría actualizar la info de un PR abierto desde otra maquina
@@ -500,7 +508,7 @@ export async function cli() {
         openPullRequestNumber = pullRequestCreated.substring(
           pullRequestCreated.lastIndexOf('/') + 1
         )
-        openPullRequestNumber = openPullRequestNumber.replace('\n')
+        openPullRequestNumber = openPullRequestNumber.replace('\n', '')
         await spinner.stop()
 
         pullRequestUri = pullRequestCreated
