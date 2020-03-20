@@ -274,10 +274,13 @@ export async function cli() {
 
     const filesAndDirectoriesToMerge = config[targetBranch].whitelist.join(' ')
 
+    spinner.text = 'Obteniendo las diferencias entre branches'
+    await spinner.start()
     // diff targetBranch..sourceBranch
     const { stdout: differencesBetweenBranches } = await exec(
       `git diff upstream/${targetBranch}..${sourceBranch} --color --stat ${filesAndDirectoriesToMerge}`
     )
+    await spinner.stop()
 
     if (!differencesBetweenBranches) {
       // no hay cambios en los fuentes, nada para
@@ -321,10 +324,12 @@ export async function cli() {
       try {
         // se hace merge de los cambios que hay en el remote origin del branch de destino seleccionado
         // En caso de conflictos se guardan
+        spinner.text = `Realizando merge de los cambios de origin/${targetBranch}`
+        await spinner.start()
         const { conflicts } = await git()
           .silent(true)
           .merge([`origin/${targetBranch}`])
-
+        await spinner.stop
         if (conflicts.length) {
           conflictsWithOrigin = conflicts.length
         }
@@ -346,10 +351,12 @@ export async function cli() {
     // se hace merge de los cambios que hay en el remote upstream del branch de destino seleccionado
     // En caso de conflictos se guardan
     try {
+      spinner.text = `Realizando merge de los cambios de upstream/${targetBranch}`
+      await spinner.start()
       const { conflicts } = await git()
         .silent(true)
         .merge([`upstream/${targetBranch}`])
-
+      await spinner.stop()
       if (conflicts.length) {
         conflictsWithUpstream = conflicts.length
       }
@@ -376,7 +383,10 @@ export async function cli() {
 
     // hacer el merge de los cambios nuevos del origen
     try {
+      spinner.text = `Realizando merge de los cambios del branch local ${sourceBranch} al branch local ${targetBranch}`
+      await spinner.start()
       await exec(`git checkout ${sourceBranch} ${filesAndDirectoriesToMerge}`)
+      await spinner.stop()
     } catch (error) {
       const { message, ...rest } = errors.MERGE_FROM_SOURCE
       throw new StandardError(
@@ -387,7 +397,10 @@ export async function cli() {
 
     // se hace commit de los cambios del merge del paso anterior
     try {
+      spinner.text = 'Realizando commit de los cambios'
+      await spinner.start()
       await git().commit(branches[sourceBranch].label)
+      await spinner.stop()
     } catch (error) {
       const { message, ...rest } = errors.MERGE_CHANGES_FROM_ORIGIN_UPSTREAM
       throw new StandardError(message, rest)
@@ -397,12 +410,15 @@ export async function cli() {
     // Mae esto pronto no va a servir(usar username:password), jeje, OJO: https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
     // considerar usar los remotes por ssh ó octokit
     try {
+      spinner.text = `Realizando push de los cambios al origin ${targetBranch}`
+      await spinner.start()
       await git()
         .silent(true)
         .push(
           `https://${githubUsername}:${githubPassword}@github.com/${githubUsername}/${REPO}`,
           targetBranch
         )
+      await spinner.stop()
     } catch (error) {
       const { message, ...rest } = errors.PUSH_TO_ORIGIN_TARGET_BRANCH
       throw new StandardError(message({ targetBranch, error }), {
@@ -474,10 +490,13 @@ export async function cli() {
       }
 
       try {
+        spinner.text = `Creando el Pull Request`
+        await spinner.start()
         const { stdout: pullRequestCreated } = await exec(actionToExecute)
         openPullRequestNumber = pullRequestCreated.substring(
           pullRequestCreated.lastIndexOf('/') + 1
         )
+        await spinner.stop()
 
         pullRequestUri = pullRequestCreated
       } catch (error) {
