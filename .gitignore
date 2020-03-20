@@ -109,3 +109,4 @@ bin/merge-requester/test.js
 bin/merge-requester/pr*
 
 .vscode
+.DS_STORE
