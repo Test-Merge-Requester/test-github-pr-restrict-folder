@@ -471,7 +471,7 @@ export async function cli() {
       console.log('shit', openPullRequestNumber === '16')
       // se obtienen los archivos anteriormente agregados en un PR activo
       // eslint-disable-next-line import/no-dynamic-require
-      previousAddedFiles = require(`./bin/merge-requester/pr${openPullRequestNumber}/files`)
+      previousAddedFiles = require(`./pr${openPullRequestNumber}/files`)
       console.log('pre', previousAddedFiles)
       const { stdout: currentPR } = await exec(
         `hub pr show -u ${openPullRequestNumber}`
