@@ -15,6 +15,7 @@ import { join } from 'path'
 import { format } from 'date-fns'
 import open from 'open'
 import { createBasicAuth } from '@octokit/auth-basic'
+import ora from 'ora'
 
 import errors from './errors'
 import questions from './cli-questions'
@@ -27,6 +28,19 @@ const writeFileAsync = util.promisify(fs.writeFile)
 
 const IS_WINDOWS = os.platform().indexOf('win32') > -1
 const LOG = console.log
+const spinner = ora()
+
+const isValidStatus = status => {
+  return (
+    status.not_added.length ||
+    status.conflicted.length ||
+    status.created.length ||
+    status.deleted.length ||
+    status.modified.length ||
+    status.renamed.length ||
+    status.staged.length
+  )
+}
 
 // eslint-disable-next-line import/prefer-default-export
 export async function cli() {
@@ -81,7 +95,10 @@ export async function cli() {
       throw new StandardError(message, rest)
     }
 
+    spinner.test = 'Obteniendo los remotes'
+    await spinner.start()
     const { stdout: remotes } = await exec('git remote')
+    await spinner.stop()
 
     if (remotes.indexOf('upstream') === -1) {
       // Tienen que tener configurado el upstream, si no mostrar error ↓
@@ -91,15 +108,7 @@ export async function cli() {
 
     const status = await git().status()
 
-    if (
-      status.not_added.length ||
-      status.conflicted.length ||
-      status.created.length ||
-      status.deleted.length ||
-      status.modified.length ||
-      status.renamed.length ||
-      status.staged.length
-    ) {
+    if (isValidStatus(status)) {
       const { message, ...rest } = errors.CHANGES_NOT_COMMITED
       throw new StandardError(message(status), { ...rest })
     }
@@ -179,9 +188,12 @@ export async function cli() {
 
     // Hacer fetch del remote origin del branch elegido como destino
     try {
+      spinner.test = 'Haciendo fetch del origin'
+      await spinner.start()
       await git()
         .silent(true)
         .fetch('origin', targetBranch)
+      await spinner.stop()
     } catch (error) {
       if (error.message.match(/couldn't find remote ref/i)) {
         // no se encontro el branch en el origin
@@ -379,6 +391,8 @@ export async function cli() {
     }
 
     // Realizar push de los cambios al branch de destino en el remote de origin
+    // Mae esto pronto no va a servir(usar username:password), jeje, OJO: https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
+    // considerar usar los remotes por ssh ó octokit
     try {
       await git()
         .silent(true)
@@ -395,7 +409,7 @@ export async function cli() {
     }
 
     try {
-      // listar los Pull Requesta que están abiertos actualmente para el branch de destino
+      // listar los Pull Request que están abiertos actualmente para el branch de destino
       // la lista viene en formato: numero del pr|autor del pr|branch del pr salto de línea
       const { stdout: listOfOpenPR } = await exec(
         `hub pr list -b ${targetBranch} -f "%I|%au|%B%n"`
@@ -572,5 +586,7 @@ export async function cli() {
     } else {
       console.error(error)
     }
+  } finally {
+    spinner.stop()
   }
 }
