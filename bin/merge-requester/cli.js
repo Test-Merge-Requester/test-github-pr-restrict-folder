@@ -589,9 +589,8 @@ export async function cli() {
                 gitActionTypes[action.toLowerCase()]
               } ${file},1,${format(today, 'dd-MM-yyyy')},Objeto,Objeto`
             )
+            previousAddedFiles.push(file)
           }
-
-          previousAddedFiles.push(file)
         }
 
         return acc
