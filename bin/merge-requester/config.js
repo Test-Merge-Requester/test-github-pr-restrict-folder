@@ -22,7 +22,8 @@ const commons = {
  * folders a ser tomados en cuenta para el merge del branch de origen
  * al branch de destino. Por ejemplo si en la lista dice ['folder1/']
  * cuándo haga el merge, al destino solo se va mergear los cambios en
- * folder1 aunque exista un folder2 y se le hayan echo cambios.
+ * folder1 aunque exista un folder2 y se le hayan hecho cambios.
+ * utilice . para incluir todos los files
  * reviewers: los reviewer son las personas por defecto asignadas
  * para que revisen el Pull Request y lo aprueben.
  * labels: los labels son la lista de tags con las
@@ -48,7 +49,7 @@ export const config = {
     },
   },
   develop: {
-    whitelist: [...commons.files, 'bin/'],
+    whitelist: ['.'],
     reviewers: ['chicus12'],
     labels: ['test', 'test2'],
     pm2: {
