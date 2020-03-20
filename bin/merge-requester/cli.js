@@ -325,6 +325,7 @@ export async function cli() {
 
     // Mostrar los fuentes cambiados y preguntar
     // si quiere avanzar
+    LOG('\n\n')
     LOG(differencesBetweenBranches)
     const { confirmDifferencesBetweenBranches } = await inquirer.prompt(
       questions.confirmDifferencesBetweenBranches({
