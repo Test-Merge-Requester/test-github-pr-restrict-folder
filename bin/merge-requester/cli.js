@@ -95,7 +95,7 @@ export async function cli() {
       throw new StandardError(message, rest)
     }
 
-    spinner.test = 'Obteniendo los remotes'
+    spinner.text = 'Obteniendo los remotes'
     await spinner.start()
     const { stdout: remotes } = await exec('git remote')
     await spinner.stop()
@@ -188,7 +188,7 @@ export async function cli() {
 
     // Hacer fetch del remote origin del branch elegido como destino
     try {
-      spinner.test = 'Haciendo fetch del origin'
+      spinner.text = 'Haciendo fetch de lo últimos cambios en origin'
       await spinner.start()
       await git()
         .silent(true)
@@ -211,9 +211,12 @@ export async function cli() {
 
     // Hacer fetch del remote upstream del branch elegido como destino
     try {
+      spinner.text = 'Haciendo fetch de lo últimos cambios en upstream'
+      await spinner.start()
       await git()
         .silent(true)
         .fetch('upstream', targetBranch)
+      await spinner.stop()
     } catch (error) {
       if (error.message.match(/couldn't find remote ref/i)) {
         const { message, ...rest } = errors.NOT_UPSTREAM_TARGET_BRANCH
