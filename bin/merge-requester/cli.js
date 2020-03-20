@@ -475,6 +475,8 @@ export async function cli() {
       const { stdout: currentPR } = await exec(
         `hub pr show -u ${openPullRequestNumber}`
       )
+      console.log('pre', previousAddedFiles)
+
       pullRequestUri = currentPR
       pullRequestLocalFolderName = `pr${openPullRequestNumber}`
     } else {
